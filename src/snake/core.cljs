@@ -1,21 +1,6 @@
-(ns snake.core)
-
-(def canvas (.getElementById js/document "canvas"))
-(def ctx (.getContext canvas "2d"))
-
-(def height 30)
-(def width 30)
-(def ratio 20)
-(def height-real (* height ratio))
-(def width-real (* width ratio))
-
-(def borders
-  (set
-    (concat
-      (for [x (range width) y [0]] [x y])
-      (for [x (range width) y [(- height 1)]] [x y])
-      (for [x [0] y (range height)] [x y])
-      (for [x [(- width 1)] y (range height)] [x y]))))
+(ns snake.core
+  (:require [snake.consts :as consts]
+            [snake.rendering :as rendering]))
 
 (def then (atom (.now js/Date)))
 
@@ -23,27 +8,13 @@
   (atom {:body '([13 15])
          :direction-new [-1 0]
          :direction-old [-1 0]
-         :fps-interval (/ 1000 5)
+         :fps-interval (/ 1000 10)
          :food [12 15]
          :playing? true}))
 
 
 (defn add-vecs [[x1 y1] [x2 y2]]
   [(+ x1 x2) (+ y1 y2)])
-
-(defn draw-rects! [rects color border-width]
-  (loop [[rect & rects] rects]
-    (let [x (+ (* (rect 0) ratio) border-width)
-          y (+ (* (rect 1) ratio) border-width)
-          width (- ratio (* border-width 2))
-          height (- ratio (* border-width 2))]
-      (set! (.-fillStyle ctx) color)
-      (.fillRect ctx x y width height)
-      (if (seq rects) (recur rects)))))
-
-(defn clear-area! []
-  (set! (.-fillStyle ctx) "white")
-  (.fillRect ctx 0 0 width-real height-real))
 
 (defn compute-direction [dir-new dir-old]
   (let [product-x (* (first dir-new) (first dir-old))
@@ -53,17 +24,20 @@
       dir-old)))
 
 (defn check-borders-or-body? [rect body]
-  (let [borders-crossed? (contains? borders rect)
-        body-crossed? (some #{rect} body)]
+  (let [borders-crossed? (contains? rendering/borders rect)
+        body-crossed? (some #{rect} (drop-last body))]
     (if (or borders-crossed? body-crossed?)
       true
       false)))
 
 (defn generate-food [store]
-  (loop [food [(rand-int width) (rand-int height)]]
-    (if (check-borders-or-body? food (@store :body))
-      (recur [(rand-int width) (rand-int height)])
-      food)))
+  (rand-nth
+    (filter
+      (fn [rect]
+        (not (or
+          (contains? rendering/borders rect)
+          (contains? (set (@store :body)) rect))))
+      (seq (for [x (range consts/rects-max) y (range consts/rects-max)] [x y])))))
 
 (defn compute [store]
   (let [direction (compute-direction (@store :direction-new) (@store :direction-old))
@@ -77,21 +51,17 @@
              (not playing?) body)
      :direction-new direction
      :direction-old direction
-     :fps-interval (/ 1000 5)
+     :fps-interval (/ 1000 10)
      :food (if food-eaten? (generate-food store) (@store :food))
      :playing? playing?}))
 
 (defn move! [store]
-  (clear-area!)
-  (draw-rects! borders "black" 0)
   (reset! store (compute store))
-  (draw-rects! (@store :body) "black" 0)
-  (draw-rects! (@store :body) "red" 1)
-  (draw-rects! [(@store :food)] "green" 0))
+  (rendering/draw-field! store))
 
 (defn game-loop! []
   (when (@store :playing?)
-    ((.requestAnimationFrame js/window game-loop! canvas)
+    ((rendering/request-animation-frame! game-loop!)
      (let [now (.now js/Date)
            elapsed (- now @then)
            fps-interval (@store :fps-interval)]
@@ -110,4 +80,6 @@
 
 
 (.addEventListener js/document "keydown" set-direction!)
+(.addEventListener js/window "resize" rendering/resize-canvas!)
+(rendering/resize-canvas!)
 (game-loop!)
