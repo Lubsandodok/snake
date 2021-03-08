@@ -1,6 +1,6 @@
 (ns snake.consts)
 
-(def rects-max 40)
+(def rects-max-count 40)
 
 (def light-blue "CBF4FF")
 (def dark-blue "B9F0FF")
