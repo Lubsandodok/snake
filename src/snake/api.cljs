@@ -6,6 +6,21 @@
 (defn get-context! [canvas]
   (.getContext canvas "2d"))
 
+(defn now! []
+  (.now js/Date))
+
+(defn add-event-listener! [element action-name action-func]
+  (.addEventListener element action-name action-func))
+
+(defn keycode! [event]
+  (.-keyCode event))
+
+(defn current-target! [event]
+  (.-currentTarget event))
+
+(defn dataset-order! [element]
+  (.-order (.-dataset element)))
+
 (defn side-length! []
   (.-innerHeight js/window))
 
@@ -30,9 +45,8 @@
 (defn item-from-node-list! [node-list item-number]
   (.item node-list item-number))
 
-; TODO
-(defn remove-classes! [element & classes]
-  (.remove (.-classList element)) (first classes) (last classes))
+(defn remove-class! [element class-name]
+  (.remove (.-classList element) class-name))
 
-(defn add-classes! [element & classes]
-  (.add (.-classList element) (first classes)))
+(defn add-class! [element class-name]
+  (.add (.-classList element) class-name))
