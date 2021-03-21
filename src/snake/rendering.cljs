@@ -44,9 +44,9 @@
   (clear-area!)
   (draw-rects! mesh consts/dark-blue 0)
   (draw-rects! state/borders consts/light-grey 0)
-  (draw-rects! (@store :body) consts/dark-grey 0)
-  (draw-rects! (@store :body) consts/olive 1)
-  (draw-rects! [(@store :food)] consts/red 0))
+  (draw-rects! (store :body) consts/dark-grey 0)
+  (draw-rects! (store :body) consts/olive 1)
+  (draw-rects! [(store :food)] consts/red 0))
 
 (defn draw-menu! [store menu selected]
   (let [node-list (api/query-selector-all! menu ".pure-menu-item")
@@ -57,17 +57,17 @@
                     (api/remove-class! x "pure-menu-selected")
                     (api/remove-class! x "pure-menu-disabled")))
           node-list)
-    (when (@store :sessionplaying?)
+    (when (store :sessionplaying?)
       (run! (fn [x] (api/add-class! x "pure-menu-disabled")) node-list))
     (api/add-class! selected-element "pure-menu-selected")))
 
 (defn draw-menus! [store]
-  (let [mode-menu-selected (case (@store :mode)
+  (let [mode-menu-selected (case (store :mode)
                              "campaign" 0
                              "free" 1)]
     (draw-menu! store mode-menu mode-menu-selected)
-    (draw-menu! store difficulty-initial-menu (@store :difficulty-initial))
-    (draw-menu! store level-initial-menu (@store :level-initial))))
+    (draw-menu! store difficulty-initial-menu (store :difficulty-initial))
+    (draw-menu! store level-initial-menu (store :level-initial))))
 
 (defn draw! [store]
   (draw-field! store)
