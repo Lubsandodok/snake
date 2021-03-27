@@ -15,6 +15,9 @@
 (defn keycode! [event]
   (.-keyCode event))
 
+(defn detail! [event]
+  (.-detail event))
+
 (defn current-target! [event]
   (.-currentTarget event))
 
@@ -30,11 +33,11 @@
 (defn set-height! [element value]
   (set! (.-height element) value))
 
-(defn request-animation-frame! [callback canvas]
-  (.requestAnimationFrame js/window callback canvas))
-
 (defn set-color! [ctx color]
   (set! (.-fillStyle ctx) color))
+
+(defn set-inner-text! [element text]
+  (set! (.-innerText element) text))
 
 (defn draw-rect! [ctx x y width height]
   (.fillRect ctx x y width height))
@@ -50,3 +53,9 @@
 
 (defn add-class! [element class-name]
   (.add (.-classList element) class-name))
+
+(defn local-storage-set-item! [k v]
+  (.setItem (.-localStorage js/window) k v))
+
+(defn local-storage-get-item! [k]
+  (.getItem (.-localStorage js/window) k))

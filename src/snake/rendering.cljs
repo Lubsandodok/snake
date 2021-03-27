@@ -8,10 +8,12 @@
 (def mode-menu (api/get-element-by-id! "mode"))
 (def level-initial-menu (api/get-element-by-id! "level-initial"))
 (def difficulty-initial-menu (api/get-element-by-id! "difficulty-initial"))
+(def message-menu (api/get-element-by-id! "message"))
 (def score-menu (api/get-element-by-id! "score"))
 (def level-menu (api/get-element-by-id! "level"))
 (def new-game-button (api/get-element-by-id! "new-game"))
-(def end-game-button (api/get-element-by-id! "end-game"))
+(def save-game-button (api/get-element-by-id! "save-game"))
+(def load-game-button (api/get-element-by-id! "load-game"))
 
 
 (def mesh
@@ -69,6 +71,20 @@
     (draw-menu! store difficulty-initial-menu (store :difficulty-initial))
     (draw-menu! store level-initial-menu (store :level-initial))))
 
+(defn draw-controls! [store]
+  (api/remove-class! new-game-button "pure-button-disabled")
+  (api/remove-class! save-game-button "pure-button-disabled")
+  (api/remove-class! load-game-button "pure-button-disabled")
+  (api/set-inner-text! message-menu (store :message))
+  (api/set-inner-text! score-menu (store :score))
+  (api/set-inner-text! level-menu (store :level-current))
+  (when (store :session-playing?)
+    (when (store :level-playing?)
+      (api/add-class! save-game-button "pure-button-disabled"))
+    (api/add-class! new-game-button "pure-button-disabled")
+    (api/add-class! load-game-button "pure-button-disabled")))
+
 (defn draw! [store]
   (draw-field! store)
-  (draw-menus! store))
+  (draw-menus! store)
+  (draw-controls! store))

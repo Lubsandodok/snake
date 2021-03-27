@@ -34,33 +34,88 @@
       (fn [rect]
         (not (or
           (contains? borders rect)
-          (contains? (set (@store :body)) rect))))
+          (contains? (set (store :body)) rect))))
       (seq (for [x (range consts/rects-max-count) y (range consts/rects-max-count)] [x y])))))
 
-(defn move [store input]
-  (let [direction (compute-direction (@input :direction) (@store :direction))
-        body (@store :body)
+(defn move [store direction-input]
+  (let [direction (compute-direction direction-input (store :direction))
+        body (store :body)
+        difficulty (store :difficulty-current)
+        score (store :score)
         head (add-vecs direction (first body))
-        win-level? (> (count body) 16)
-        level-playing? (not (or win-level? (check-borders-or-body? head body)))
-        food-eaten? (= head (@store :food))]
-    (assoc @store
+        alive? (not (check-borders-or-body? head body))
+        food-eaten? (= head (store :food))]
+    (assoc store
       :body (cond
-              (and level-playing? food-eaten?) (conj body head)
-              (and level-playing? (not food-eaten?)) (drop-last (conj body head))
-              (not level-playing?) body)
+              (and alive? food-eaten?) (conj body head)
+              (and alive? (not food-eaten?)) (drop-last (conj body head))
+              (not alive?) body)
       :direction direction
-      :difficulty-current 0
-      :food (if food-eaten? (generate-food store) (@store :food))
-      :level-playing? level-playing?
-      :session-playing? (if level-playing? true win-level?))))
+      :difficulty-current (if (> (count body) 9) (inc difficulty) difficulty)
+      :food (if food-eaten? (generate-food store) (store :food))
+      :score (if food-eaten? (inc score) score)
+      :message (if alive? (store :message) "Game Over")
+      :level-playing? alive?
+;      :session-playing? alive?)))
+    )))
+
+(defn move-to-next-level [store]
+  (assoc store
+    :body '([13 15])
+    :direction [-1 0]
+    :difficulty-current (store :difficulty-initial)
+    :level-current (inc (store :level-current))
+    :food [12 15]
+    :message "You passed the level. Prepare to next one"
+    :level-playing? false
+    ))
+
+(defn try-move [store direction-input]
+  (cond
+    (and
+      (store :session-playing?)
+      (store :level-playing?)
+      (> (count (store :body)) 4))
+    (move-to-next-level store)
+
+    (and
+      (store :session-playing?)
+      (store :level-playing?)
+      (not (> (count (store :body)) 4)))
+    (move store direction-input)
+
+    :else store
+  ))
+
+(defn start-playing [store]
+  (if (and
+          (store :session-playing?)
+          (not (store :level-playing?)))
+    (assoc store
+      :level-playing? true
+      :message "Play Game")
+    store))
 
 (defn set-mode [store mode]
   (assoc store
     :mode mode))
 
+(defn start-new-game [store]
+  (assoc store
+    :body '([13 15])
+    :direction [-1 0]
+    :food [12 15]
+    :message "Press Space to start"
+    :difficulty-current (store :difficulty-initial)
+    :level-current (store :level-initial)
+    :score 0
+    :level-playing? false
+    :session-playing? true))
+
 (defn compute [store command]
-  (println "Command" command)
   (condp = (first command)
     :set-mode (set-mode store (last command))
+    :start-new-game (start-new-game store)
+    :start-playing (start-playing store)
+    :move (try-move store (last command))
     store))
