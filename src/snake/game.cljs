@@ -4,27 +4,28 @@
             [cljs.reader :as reader]
             [snake.api :as api]
             [snake.rendering :as rendering]
+            [snake.levels :as levels]
             [snake.state :as state]))
 
 (def then (atom (api/now!)))
 (def direction (atom [-1 0]))
 
 (def command-chan (chan))
+(def difficulty-chan (chan))
 
 (defn init-store []
   {:mode "campaign"
-   :body '([13 15])
-   :direction [1 0]
+   :body (list (levels/choose-body 0))
+   :direction [-1 0]
    :difficulty-initial 0
    :difficulty-current 0
    :message "Start or Load Game"
-   :food [12 15]
+   :food (levels/choose-food 0)
    :level-initial 0
    :level-current 0
    :score 0
    :level-playing? false
-   :session-playing? false
-   })
+   :session-playing? false})
 
 (defn save-game! [store]
   (api/local-storage-set-item! "user-data" (pr-str store)))
@@ -33,10 +34,10 @@
   (reader/read-string (api/local-storage-get-item! "user-data")))
 
 (defn move-loop! []
-  (go (loop []
-        (<! (timeout 100))
+  (go (loop [difficulty 0]
+        (<! (timeout (state/compute-difficulty-timeout difficulty)))
         (>! command-chan (list :move @direction))
-        (recur))))
+        (recur (<! difficulty-chan)))))
 
 (defn game-loop! []
   (go (loop [store-before (init-store)]
@@ -46,8 +47,11 @@
           (when (= (first command) :save-game)
             (save-game! store))
           (when (= (first command) :load-game)
-            ; TODO
-            (reset! store (load-game!)))
+            (let [store-loaded (load-game!)]
+              (when (some? store-loaded)
+                (recur store-loaded))))
+          (when (= (first command) :move)
+            (>! difficulty-chan (store :difficulty-current)))
           (recur store)))))
 
 
@@ -71,6 +75,17 @@
       (go
         (>! command-chan (list command-name true))))))
 
+(defn create-listener [command-name handler]
+  (fn [element] (api/add-event-listener!
+            element
+            "click"
+            (fn [event]
+              (go
+                (>! command-chan
+                  (list
+                    command-name
+                    (handler (api/dataset-order! (api/target! event))))))))))
+
 (defn init-listeners! []
   (api/add-event-listener! js/window "resize" rendering/resize-canvas!)
   (api/add-event-listener! js/document "keydown" set-direction!)
@@ -78,36 +93,19 @@
   (api/add-event-listener! rendering/save-game-button "click" (create-button-listener :save-game))
   (api/add-event-listener! rendering/load-game-button "click" (create-button-listener :load-game))
   (run!
-    (fn [x] (api/add-event-listener!
-              x
-              "click"
-              (fn [event]
-                (go
-                  (>!
-                    command-chan
-                    (list
-                      :set-mode
-                      (case (api/dataset-order! (api/current-target! event))
-                        "0" "campaign"
-                        "1" "free")))))))
-    (api/query-selector-all! rendering/mode-menu ".pure-menu-item"))
-;  (run!
-;    (fn [x] (api/add-event-listener!
-;              x
-;              "click"
-;              (create-listener
-;                :level-initial
-;                (fn [event] (api/dataset-order! (api/current-target! event))))))
-;    (api/query-selector-all! rendering/level-initial-menu ".pure-menu-item"))
-;  (run!
-;    (fn [x] (api/add-event-listener!
-;              x
-;              "click"
-;              (create-listener
-;                :difficulty-initial
-;                (fn [event] (api/dataset-order! (api/current-target! event))))))
-;    (api/query-selector-all! rendering/difficulty-initial-menu ".pure-menu-item")))
-  )
+    (create-listener
+      :set-mode
+      (fn [order]
+        (case order
+          "0" "campaign"
+          "1" "free")))
+    (api/query-selector-all! rendering/mode-menu ".pure-menu-link"))
+  (run!
+    (create-listener :set-level-initial (fn [order] (reader/read-string order)))
+    (api/query-selector-all! rendering/level-initial-menu ".pure-menu-link"))
+  (run!
+    (create-listener :set-difficulty-initial (fn [order] (reader/read-string order)))
+    (api/query-selector-all! rendering/difficulty-initial-menu ".pure-menu-link")))
 
 
 (rendering/resize-canvas!)

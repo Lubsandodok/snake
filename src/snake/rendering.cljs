@@ -1,6 +1,7 @@
 (ns snake.rendering
   (:require [snake.api :as api]
             [snake.consts :as consts]
+            [snake.levels :as levels]
             [snake.state :as state]))
 
 (def canvas (api/get-element-by-id! "canvas"))
@@ -45,7 +46,7 @@
 (defn draw-field! [store]
   (clear-area!)
   (draw-rects! mesh consts/dark-blue 0)
-  (draw-rects! state/borders consts/light-grey 0)
+  (draw-rects! (levels/choose-borders (store :level-current)) consts/light-grey 0)
   (draw-rects! (store :body) consts/dark-grey 0)
   (draw-rects! (store :body) consts/olive 1)
   (draw-rects! [(store :food)] consts/red 0))
@@ -59,7 +60,7 @@
                     (api/remove-class! x "pure-menu-selected")
                     (api/remove-class! x "pure-menu-disabled")))
           node-list)
-    (when (store :sessionplaying?)
+    (when (store :session-playing?)
       (run! (fn [x] (api/add-class! x "pure-menu-disabled")) node-list))
     (api/add-class! selected-element "pure-menu-selected")))
 
@@ -77,12 +78,12 @@
   (api/remove-class! load-game-button "pure-button-disabled")
   (api/set-inner-text! message-menu (store :message))
   (api/set-inner-text! score-menu (store :score))
-  (api/set-inner-text! level-menu (store :level-current))
+  (api/set-inner-text! level-menu (levels/level-name (store :level-current)))
   (when (store :session-playing?)
-    (when (store :level-playing?)
-      (api/add-class! save-game-button "pure-button-disabled"))
     (api/add-class! new-game-button "pure-button-disabled")
-    (api/add-class! load-game-button "pure-button-disabled")))
+    (api/add-class! load-game-button "pure-button-disabled"))
+  (when (or (not (store :session-playing?)) (store :level-playing?))
+    (api/add-class! save-game-button "pure-button-disabled")))
 
 (defn draw! [store]
   (draw-field! store)

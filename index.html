@@ -55,11 +55,11 @@
         <div class="pure-menu" id="mode">
           <span class="pure-menu-heading">Game mode</span>
           <ul class="pure-menu-list">
-            <li class="pure-menu-item" data-order="0">
-              <a href="#" class="pure-menu-link">Campaign</a>
+            <li class="pure-menu-item">
+              <a href="#" class="pure-menu-link" data-order="0">Campaign</a>
             </li>
-            <li class="pure-menu-item" data-order="1">
-              <a href="#" class="pure-menu-link">Free</a>
+            <li class="pure-menu-item">
+              <a href="#" class="pure-menu-link" data-order="1">Free</a>
             </li>
           </ul>
         </div>
@@ -68,37 +68,35 @@
           <div class="pure-menu" id="level-initial">
             <span class="pure-menu-heading">Initial level</span>
             <ul class="pure-menu-list">
-              <li class="pure-menu-item" data-order="0">
-                <a href="#" class="pure-menu-link">First</a>
+              <li class="pure-menu-item">
+                <a href="#" class="pure-menu-link" data-order="0">First</a>
               </li>
-              <li class="pure-menu-item" data-order="1">
-                <a href="#" class="pure-menu-link">Second</a>
+              <li class="pure-menu-item">
+                <a href="#" class="pure-menu-link" data-order="1">Second</a>
               </li>
-              <li class="pure-menu-item" data-order="2">
-                <a href="#" class="pure-menu-link">Third</a>
+              <li class="pure-menu-item">
+                <a href="#" class="pure-menu-link" data-order="2">Third</a>
               </li>
             </ul>
           </div>
           <div class="pure-menu" id="difficulty-initial">
             <span class="pure-menu-heading">Difficulty</span>
             <ul class="pure-menu-list">
-              <li class="pure-menu-item" data-order="0">
-                <a href="#" class="pure-menu-link">Easy</a>
+              <li class="pure-menu-item">
+                <a href="#" class="pure-menu-link" data-order="0">Easy</a>
               </li>
-              <li class="pure-menu-item" data-order="1">
-                <a href="#" class="pure-menu-link">Medium</a>
+              <li class="pure-menu-item">
+                <a href="#" class="pure-menu-link" data-order="1">Medium</a>
               </li>
-              <li class="pure-menu-item" data-order="2">
-                <a href="#" class="pure-menu-link">Hard</a>
+              <li class="pure-menu-item">
+                <a href="#" class="pure-menu-link" data-order="2">Hard</a>
               </li>
             </ul>
           </div>
         </div>
 
         <div class="info-and-actions-container">
-          <p>Message: <span id="message"></span></p>
-          <p>Score: <span id="score">0</span></p>
-          <p>Current level: <span id="level">first</span></p>
+          <p><span id="message"></span></p>
           <button class="pure-button pure-button-primary" id="new-game">Start Game</button>
           <button class="pure-button pure-button-primary pure-button-disabled" id="save-game">
               Save Game
@@ -106,6 +104,8 @@
           <button class="pure-button pure-button-primary" id="load-game">
               Load Game
           </button>
+          <p>Score: <span id="score">0</span></p>
+          <p>Current level: <span id="level">first</span></p>
         </div>
       </div>
     </div>

@@ -18,8 +18,8 @@
 (defn detail! [event]
   (.-detail event))
 
-(defn current-target! [event]
-  (.-currentTarget event))
+(defn target! [event]
+  (.-target event))
 
 (defn dataset-order! [element]
   (.-order (.-dataset element)))
